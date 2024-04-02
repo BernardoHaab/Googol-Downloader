@@ -1,80 +1,73 @@
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.net.MulticastSocket;
-import java.net.NetworkInterface;
-import java.util.List;
+import java.util.Set;
 
 public class StorageBarrel implements IStorageBarrel {
 
-  private String HOST_NAME = "224.3.2.1";
-  private InetAddress mcastaddr;
-  private int PORT = 4321;
+  private final Integer BUFFER_SIZE = 1024;
+  private final String HOST_NAME = "224.3.2.1";
+  private final int PORT = 4321;
 
-  private String typeGetNext = "GET_NEXT_URL";
-  private String msgGetNext = "TYPE | " + typeGetNext;
-
+  private InetAddress group;
   private MulticastSocket socket;
 
-  public StorageBarrel() throws IOException {
-    // super("StorabeBarrel " + (long) (Math.random() * 1000));
-    // this.start();
+  StorageBarrel() throws IOException {
+    // super("StorageBarrel");
+    // // StorageBarrel server = new StorageBarrel();
+    // start();
 
-    socket = new MulticastSocket(PORT);
-    mcastaddr = InetAddress.getByName(HOST_NAME);
-    socket.joinGroup(new InetSocketAddress(mcastaddr, 0), NetworkInterface.getByIndex(0));
+    socket = new MulticastSocket();
+    group = InetAddress.getByName(HOST_NAME);
+    // socket.joinGroup(new InetSocketAddress(mcastaddr, 0),
+    // NetworkInterface.getByIndex(0));
   }
 
   @Override
-  public String getNextUrl() {
-    byte[] buffer = msgGetNext.getBytes();
+  public void updateStorageBarrels(Set<String> words, String url) throws IOException {
+    // String message = "TESTE";
+    // byte[] buffer = message.getBytes();
 
-    try {
-      DatagramPacket packet = new DatagramPacket(buffer, buffer.length, mcastaddr, PORT);
-      socket.send(packet);
+    String message = "TYPE | WORD_LIST; URL | " + url + ";" + " word_COUNT | " + words.size() + ";";
 
-      return receiveNextUrl();
+    int buffer_size = 0;
 
-    } catch (IOException e) {
-      System.err.println("Error on getNextUrl: " + e.getMessage());
-      return "";
-    }
-  }
+    int id = 0;
 
-  private String receiveNextUrl() throws IOException {
-    byte[] buffer = new byte[1024];
-    DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-    String newUrl = "";
+    for (String word : words) {
+      String newWords = id + " | " + word + ";";
 
-    try {
-      while (newUrl.isEmpty()) {
-        socket.receive(packet);
-        String res = new String(packet.getData());
-        String resFormat = "TYPE | RES; " + typeGetNext;
-        if (res.startsWith(resFormat)) {
-          newUrl = res.substring(resFormat.length() + 1).trim();
-          break;
-        }
+      if (buffer_size + newWords.getBytes().length > BUFFER_SIZE) {
+        byte[] buffer = message.getBytes();
+        System.out.println("---------LIMITE----------");
+        System.out.println("Sending: " + message);
+        System.out.println("buffer size: " + buffer.length);
+        System.out.println("buffer size: " + buffer_size);
+        DatagramPacket packet = new DatagramPacket(buffer, buffer_size, group, PORT);
+        socket.send(packet);
+        message = "TYPE | WORD_LIST; URL | " + url + ";" + " word_COUNT | " + words.size() + ";" + newWords;
+      } else {
+        message += newWords;
       }
 
-      return newUrl;
-    } catch (IOException e) {
-      System.err.println("Error receiving next url: " + e.getMessage());
-      throw e;
+      buffer_size = message.getBytes().length;
+      id++;
     }
-  }
 
-  @Override
-  public int size() {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'size'");
-  }
+    if (buffer_size > 0) {
+      byte[] buffer = message.getBytes();
 
-  @Override
-  public void addUrls(List<String> urls) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'addUrls'");
+      System.out.println("\n");
+
+      System.out.println("---------FINAL----------");
+      System.out.println("Sending: " + message);
+      System.out.println("buffer size: " + buffer.length);
+      System.out.println("buffer size: " + buffer_size);
+      DatagramPacket packet = new DatagramPacket(buffer, buffer_size, group, PORT);
+      socket.send(packet);
+    }
+
   }
 
 }

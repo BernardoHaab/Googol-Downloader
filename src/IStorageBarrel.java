@@ -1,12 +1,8 @@
 import java.io.IOException;
-import java.util.List;
+import java.util.Set;
 
 public interface IStorageBarrel {
 
-  public String getNextUrl() throws IOException;
-
-  public int size();
-
-  public void addUrls(List<String> urls);
+  public void updateStorageBarrels(Set<String> words, String url) throws IOException;
 
 }
