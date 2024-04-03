@@ -14,10 +14,8 @@ import org.jsoup.select.Elements;
 public class StorageBarrel implements IStorageBarrel {
 
   private final Integer BUFFER_SIZE = 1024;
-  private final String HOST_NAME = "224.3.2.1";
-  private final int PORT = 4321;
-  private final int PORT_RETRIEVE = 4322;
 
+  private int portSend;
   private InetAddress group;
   private MulticastSocket socket;
 
@@ -26,10 +24,11 @@ public class StorageBarrel implements IStorageBarrel {
 
   private ConcurrentHashMap<Integer, String> messageBuffer = new ConcurrentHashMap<Integer, String>();
 
-  StorageBarrel() throws IOException {
+  StorageBarrel(String hostName, int portSend, int portRetrieve) throws IOException {
 
-    socket = new MulticastSocket(PORT_RETRIEVE);
-    group = InetAddress.getByName(HOST_NAME);
+    this.portSend = portSend;
+    socket = new MulticastSocket(portRetrieve);
+    group = InetAddress.getByName(hostName);
     this.downloaderId = UUID.randomUUID();
 
     listenRetrieve();
@@ -40,7 +39,7 @@ public class StorageBarrel implements IStorageBarrel {
     new Thread() {
       public void run() {
         try {
-          System.out.println("Listening on port: " + PORT_RETRIEVE);
+          // System.out.println("Listening on port: " + PORT_RETRIEVE);
           NetworkInterface networkInterface = NetworkInterface.getByIndex(0);
           InetSocketAddress socketAddress = new InetSocketAddress(group, 0);
 
@@ -64,7 +63,8 @@ public class StorageBarrel implements IStorageBarrel {
                 String retrieveMessage = messageBuffer.get(requestedMessageId);
 
                 byte[] retrieveBuffer = retrieveMessage.getBytes();
-                DatagramPacket retrievePacket = new DatagramPacket(retrieveBuffer, retrieveBuffer.length, group, PORT);
+                DatagramPacket retrievePacket = new DatagramPacket(retrieveBuffer, retrieveBuffer.length, group,
+                    portSend);
                 socket.send(retrievePacket);
               }
             }
@@ -141,7 +141,7 @@ public class StorageBarrel implements IStorageBarrel {
   private void sendMulticast(String message) throws IOException {
     messageBuffer.put(messageId, message);
     byte[] buffer = message.getBytes();
-    DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, PORT);
+    DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, portSend);
     socket.send(packet);
     messageId++;
 
