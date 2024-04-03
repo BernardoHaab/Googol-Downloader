@@ -56,7 +56,7 @@ public class Downloader {
     // ToDo: update hiperlinks to use on sort of storage
 
     StringTokenizer tokens = new StringTokenizer(doc.text());
-    int countTokens = 0;
+    Elements links = doc.select("a[href]");
 
     Set<String> words = new HashSet<String>();
 
@@ -71,6 +71,7 @@ public class Downloader {
     try {
       System.out.println("Found " + words.size() + " words");
       storageBarrel.updateStorageBarrels(words, url);
+      storageBarrel.addReferencedUrls(links, url);
     } catch (Exception e) {
       System.out.println("Error updating storage barrels");
       System.err.println(e);
