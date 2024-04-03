@@ -44,7 +44,7 @@ public class Downloader {
         System.out.println("Next url: " + url);
 
         Scanner in = new Scanner(System.in);
-        in.nextLine();
+        // in.nextLine();
       }
     } catch (Exception e) {
       System.out.println("Error on start: " + e.getMessage());
