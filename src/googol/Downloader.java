@@ -40,7 +40,7 @@ public class Downloader {
         System.out.println("Url invalida: " + url);
       } catch (Exception e) {
         System.out.println("Erro ao acessar: " + url);
-        urlQueue.addUrlFirst(url);
+        urlQueue.addUrl(url);
       }
 
       url = getUrl();
