@@ -76,7 +76,6 @@ public class StorageBarrel implements IStorageBarrel {
             }
           }
         } catch (NullPointerException e) {
-          // TODO: Send NEED-SYNC message
           System.out.println("MENSAGEM FORA DO BUFFER");
         } catch (Exception e) {
           System.out.println("Error on listenRetrieve: " + e.getMessage());
