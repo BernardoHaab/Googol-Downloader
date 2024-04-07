@@ -1,10 +1,14 @@
-import java.io.IOException;
+package googol;
+
+import java.net.MalformedURLException;
+import java.rmi.RemoteException;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.concurrent.TimeUnit;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -21,39 +25,53 @@ public class Downloader {
     this.storageBarrel = storageBarrel;
   }
 
-  public void start() {
-    try {
-      String url = urlQueue.getNextUrl();
+  public void start() throws RemoteException {
+    String url = getUrl();
 
-      System.out.println("First url: " + url);
+    System.out.println("First url: " + url);
 
-      while (url != null) {
-        // while ((url = urlQueue.getNextUrl()) == null)
-        // ToDo: alterar para esperar notificação de nova url
-
-        System.out.println("Downloading " + url);
-        try {
-          Document doc = Jsoup.connect(url).get();
-          updateStorageBarrels(doc, url);
-          updateUrlQueue(doc);
-        } catch (IOException e) {
-          System.out.println("Error downloading " + url);
-        }
-
-        url = urlQueue.getNextUrl();
-        System.out.println("Next url: " + url);
-
-        Scanner in = new Scanner(System.in);
-        // in.nextLine();
+    while (true) {
+      System.out.println("Downloading " + url);
+      try {
+        Document doc = Jsoup.connect(url).get();
+        updateUrlQueue(doc);
+        updateStorageBarrels(doc, url);
+      } catch (MalformedURLException e) {
+        System.out.println("Url invalida: " + url);
+      } catch (Exception e) {
+        System.out.println("Erro ao acessar: " + url);
+        urlQueue.addUrlFirst(url);
       }
-    } catch (Exception e) {
-      System.out.println("Error on start: " + e.getMessage());
+
+      url = getUrl();
+
+      System.out.println("Next url: " + url);
+
+      Scanner in = new Scanner(System.in);
+      // in.nextLine();
     }
   }
 
-  private void updateStorageBarrels(Document doc, String url) {
+  private String getUrl() throws RemoteException {
+    String nextUrl;
 
-    // ToDo: update hiperlinks to use on sort of storage
+    nextUrl = urlQueue.getNextUrl();
+
+    if (nextUrl == null) {
+      System.out.println("0 urls encontradas...");
+      System.out.println("Tentando novamente!");
+      try {
+        TimeUnit.SECONDS.sleep(1);
+      } catch (InterruptedException e1) {
+        e1.printStackTrace();
+      }
+      return getUrl();
+    }
+
+    return nextUrl;
+  }
+
+  private void updateStorageBarrels(Document doc, String url) {
 
     StringTokenizer tokens = new StringTokenizer(doc.text());
     Elements links = doc.select("a[href]");

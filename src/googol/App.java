@@ -1,7 +1,10 @@
+package googol;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.rmi.registry.LocateRegistry;
 import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 
 public class App {
 
@@ -24,7 +27,7 @@ public class App {
 
       readFileProperties(fileName);
 
-      IUrlQueue queue = (IUrlQueue) LocateRegistry.getRegistry(queueHost, queuePort).lookup(queueRegistryName);
+      IUrlQueue queue = getUrlQueueInstance();
       IStorageBarrel barrel = new StorageBarrel(barrelHost, barrelPortSend, barrelPortRetrieve);
       Downloader downloader = new Downloader(queue, barrel);
 
@@ -32,6 +35,21 @@ public class App {
     } catch (Exception e) {
       System.out.println("Error on main: " + e.getMessage());
       e.printStackTrace();
+    }
+  }
+
+  private static IUrlQueue getUrlQueueInstance() {
+    try {
+      return (IUrlQueue) LocateRegistry.getRegistry(queueHost, queuePort).lookup(queueRegistryName);
+    } catch (Exception e) {
+      System.out.println("Erro ao conectar ao servidor!");
+      System.out.println("Tentando novamente...");
+      try {
+        TimeUnit.SECONDS.sleep(1);
+      } catch (InterruptedException e1) {
+        e1.printStackTrace();
+      }
+      return getUrlQueueInstance();
     }
   }
 
@@ -47,7 +65,7 @@ public class App {
         String[] parts = line.split(";");
 
         switch (parts[0]) {
-          case "downloader":
+          case "urlQueue":
             queueHost = parts[1];
             queuePort = Integer.parseInt(parts[2]);
             queueRegistryName = parts[3];
