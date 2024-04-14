@@ -3,5 +3,5 @@
 Requisito Java 17
 
 `
-java googol.App .\lib\properties
+java -cp ".\\bin;.\\lib\\jsoup-1.17.2.jar" googol.App lib/properties
 `
