@@ -5,7 +5,6 @@ import java.rmi.RemoteException;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Scanner;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.concurrent.TimeUnit;
@@ -47,7 +46,7 @@ public class Downloader {
 
       System.out.println("Next url: " + url);
 
-      Scanner in = new Scanner(System.in);
+      // Scanner in = new Scanner(System.in);
       // in.nextLine();
     }
   }
@@ -88,7 +87,7 @@ public class Downloader {
 
     try {
       System.out.println("Found " + words.size() + " words");
-      storageBarrel.updateStorageBarrels(words, url);
+      storageBarrel.updateStorageBarrels(words, url, doc.title(), doc.text().substring(0, 100));
       storageBarrel.addReferencedUrls(links, url);
     } catch (Exception e) {
       System.out.println("Error updating storage barrels");

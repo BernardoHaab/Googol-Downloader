@@ -6,6 +6,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.MulticastSocket;
 import java.net.NetworkInterface;
+import java.nio.charset.Charset;
 import java.sql.Timestamp;
 import java.util.Set;
 import java.util.UUID;
@@ -86,9 +87,14 @@ public class StorageBarrel implements IStorageBarrel {
   }
 
   @Override
-  public void updateStorageBarrels(Set<String> words, String url) throws IOException {
-    String message = createMulticastMessage("WORD_LIST") + ";URL|" + url + ";" + " word_COUNT|" + words.size();
+  public void updateStorageBarrels(Set<String> words, String url, String title, String quote) throws IOException {
+    String message = createMulticastMessage("WORD_LIST") + ";URL|" + url + ";word_COUNT|" + words.size() + ";TITLE|"
+        + title + ";QUOTE|" + quote;
 
+    // 7aff86f2-239c-4710-a9e5-620d78768fb4|19;TYPE|WORD_LIST;URL|https://www.javatpoint.com/python-turtle-programming;
+    // word_COUNT|771
+
+    System.out.println("Message: " + message);
     int buffer_size = 0;
     int id = 0;
 
@@ -156,7 +162,7 @@ public class StorageBarrel implements IStorageBarrel {
 
   private void sendMulticast(String message) throws IOException {
     messageBuffer.put(messageId, message);
-    byte[] buffer = message.getBytes();
+    byte[] buffer = message.getBytes(Charset.forName("UTF-8"));
     // System.out.println("\tTotal bytes: " + buffer.length);
     DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, portSend);
     Timestamp timestamp = new Timestamp(System.currentTimeMillis());
