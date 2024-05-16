@@ -87,7 +87,9 @@ public class Downloader {
 
     try {
       System.out.println("Found " + words.size() + " words");
-      storageBarrel.updateStorageBarrels(words, url, doc.title(), doc.text().substring(0, 100));
+      String text = doc.text();
+      storageBarrel.updateStorageBarrels(words, url, doc.title(),
+          text.substring(0, text.length() > 100 ? 100 : text.length() - 1));
       storageBarrel.addReferencedUrls(links, url);
     } catch (Exception e) {
       System.out.println("Error updating storage barrels");
